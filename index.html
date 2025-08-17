@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurevtech AI Coder - Medical Coding Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .input-section, .output-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .result-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-card h4 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .code-suggestion {
+            background: #e8f5e8;
+            border: 1px solid #c3e6c3;
+            border-radius: 5px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .code-suggestion.icd10 {
+            background: #e8f4f8;
+            border-color: #b8e0f0;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .code-title {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .confidence-badge {
+            background: #27ae60;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .confidence-badge.medium {
+            background: #f39c12;
+        }
+
+        .confidence-badge.low {
+            background: #e74c3c;
+        }
+
+        .readiness-score {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .readiness-score.high {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .readiness-score.medium {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .readiness-score.low {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .score-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .example-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Aurevtech AI Coder</h1>
+            <p>AI Medical Coding Engine for Clinical Documentation</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h3 class="section-title">Clinical Input</h3>
+                
+                <button class="btn example-btn" onclick="loadExample()">Load Example Case</button>
+
+                <form id="codingForm">
+                    <div class="form-group">
+                        <label>Processing Mode</label>
+                        <select id="mode" name="mode">
+                            <option value="analyze">Analyze (JSON only)</option>
+                            <option value="explain">Explain (JSON + notes)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Patient Age</label>
+                            <input type="number" id="patientAge" name="age" required min="0" max="120">
+                        </div>
+                        <div class="form-group">
+                            <label>Patient Sex</label>
+                            <select id="patientSex" name="sex" required>
+                                <option value="">Select...</option>
+                                <option value="F">Female</option>
+                                <option value="M">Male</option>
+                                <option value="U">Unknown</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Encounter Date</label>
+                            <input type="date" id="encounterDate" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Place of Service</label>
+                            <select id="posCode" name="pos_code" required>
+                                <option value="">Select...</option>
+                                <option value="11">Office</option>
+                                <option value="23">Emergency Room</option>
+                                <option value="22">Outpatient Hospital</option>
+                                <option value="02">Telehealth</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Payer</label>
+                            <input type="text" id="payer" name="payer" required placeholder="e.g., GenericPPO">
+                        </div>
+                        <div class="form-group">
+                            <label>Provider Type</label>
+                            <input type="text" id="providerType" name="provider_type" required placeholder="e.g., Internal Medicine">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Clinical Note</label>
+                        <textarea id="clinicalNote" name="clinical_note" required 
+                                placeholder="Enter clinical documentation (HPI, ROS, PE, MDM, Orders, Results)..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Orders (optional, one per line)</label>
+                        <textarea id="orders" name="orders" 
+                                placeholder="ECG 12-lead&#10;Chest X-ray&#10;CBC with differential"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Blood Pressure</label>
+                            <input type="text" id="bp" name="bp" placeholder="120/80">
+                        </div>
+                        <div class="form-group">
+                            <label>Heart Rate</label>
+                            <input type="text" id="hr" name="hr" placeholder="72">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" id="submitBtn">Process Medical Coding</button>
+                </form>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processing clinical documentation...</p>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <h3 class="section-title">Coding Results</h3>
+                
+                <div id="noResults" style="text-align: center; color: #7f8c8d; padding: 2rem;">
+                    <p>Enter clinical information and click "Process Medical Coding" to see results</p>
+                </div>
+
+                <div class="result-section" id="results">
+                    <div class="readiness-score" id="readinessScore">
+                        <div class="score-number" id="scoreNumber">--</div>
+                        <div>Claim Readiness Score</div>
+                        <div id="submitReady">--</div>
+                    </div>
+
+                    <div class="result-card">
+                        <h4>Code Suggestions</h4>
+                        <div id="codeSuggestions"></div>
+                    </div>
+
+                    <div class="result-card">
+                        <h4>Clinical Facts Extracted</h4>
+                        <div id="clinicalFacts"></div>
+                    </div>
+
+                    <div class="result-card">
+                        <h4>Compliance Issues</h4>
+                        <div id="complianceIssues"></div>
+                    </div>
+
+                    <div class="result-card" id="explanationCard" style="display: none;">
+                        <h4>Explanation</h4>
+                        <div id="explanationNotes"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set default date to today
+        document.getElementById('encounterDate').valueAsDate = new Date();
+
+        // Form submission
+        document.getElementById('codingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const noResults = document.getElementById('noResults');
+            const results = document.getElementById('results');
+            
+            // Show loading
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            noResults.style.display = 'none';
+            results.style.display = 'none';
+            
+            try {
+                // Collect form data
+                const formData = new FormData(e.target);
+                const requestData = {
+                    mode: formData.get('mode'),
+                    patient: {
+                        age: parseInt(formData.get('age')),
+                        sex: formData.get('sex')
+                    },
+                    encounter: {
+                        date: formData.get('date'),
+                        pos_code: formData.get('pos_code'),
+                        payer: formData.get('payer'),
+                        provider_type: formData.get('provider_type')
+                    },
+                    clinical_note: formData.get('clinical_note'),
+                    structured: {
+                        diagnoses: [],
+                        orders: formData.get('orders') ? formData.get('orders').split('\n').filter(o => o.trim()) : [],
+                        procedures: [],
+                        vitals: {
+                            bp: formData.get('bp') || '',
+                            hr: formData.get('hr') || '',
+                            temp: ''
+                        },
+                        meds_administered: []
+                    }
+                };
+
+                // Make API call
+                const response = await fetch('/code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    displayResults(result);
+                } else {
+                    throw new Error(result.detail?.message || 'API error');
+                }
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        function displayResults(data) {
+            const noResults = document.getElementById('noResults');
+            const results = document.getElementById('results');
+            
+            noResults.style.display = 'none';
+            results.style.display = 'block';
+
+            // Readiness score
+            displayReadinessScore(data.readiness);
+            
+            // Code suggestions
+            displayCodeSuggestions(data.suggestions);
+            
+            // Clinical facts
+            displayClinicalFacts(data.facts);
+            
+            // Compliance issues
+            displayComplianceIssues(data.readiness, data.edits);
+            
+            // Explanation (if present)
+            if (data.explanation.notes && data.explanation.notes.length > 0) {
+                displayExplanation(data.explanation.notes);
+            }
+        }
+
+        function displayReadinessScore(readiness) {
+            const scoreElement = document.getElementById('readinessScore');
+            const scoreNumber = document.getElementById('scoreNumber');
+            const submitReady = document.getElementById('submitReady');
+            
+            const score = Math.round(readiness.score * 100);
+            scoreNumber.textContent = score + '%';
+            submitReady.textContent = readiness.submit_ready ? 'Ready to Submit' : 'Needs Review';
+            
+            // Set color class based on score
+            scoreElement.className = 'readiness-score ';
+            if (score >= 80) {
+                scoreElement.className += 'high';
+            } else if (score >= 60) {
+                scoreElement.className += 'medium';
+            } else {
+                scoreElement.className += 'low';
+            }
+        }
+
+        function displayCodeSuggestions(suggestions) {
+            const container = document.getElementById('codeSuggestions');
+            container.innerHTML = '';
+            
+            if (suggestions.length === 0) {
+                container.innerHTML = '<p>No code suggestions generated</p>';
+                return;
+            }
+
+            suggestions.forEach(suggestion => {
+                const div = document.createElement('div');
+                div.className = 'code-suggestion ' + (suggestion.system === 'ICD10' ? 'icd10' : '');
+                
+                const confidence = Math.round(suggestion.confidence * 100);
+                let confidenceClass = 'high';
+                if (confidence < 80) confidenceClass = 'medium';
+                if (confidence < 60) confidenceClass = 'low';
+                
+                div.innerHTML = `
+                    <div class="code-header">
+                        <div class="code-title">${suggestion.code} (${suggestion.system})</div>
+                        <div class="confidence-badge ${confidenceClass}">${confidence}%</div>
+                    </div>
+                    <div><strong>${suggestion.description}</strong></div>
+                    <div><small>${suggestion.rationale}</small></div>
+                    ${suggestion.modifiers.length > 0 ? `<div><small><strong>Modifiers:</strong> ${suggestion.modifiers.join(', ')}</small></div>` : ''}
+                    ${suggestion.flags.length > 0 ? `<div><small><strong>Flags:</strong> ${suggestion.flags.join(', ')}</small></div>` : ''}
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+
+        function displayClinicalFacts(facts) {
+            const container = document.getElementById('clinicalFacts');
+            container.innerHTML = `
+                <p><strong>Problems:</strong> ${facts.problems.join(', ') || 'None identified'}</p>
+                <p><strong>Findings:</strong> ${facts.findings.join(', ') || 'None identified'}</p>
+                <p><strong>Orders:</strong> ${facts.orders.join(', ') || 'None identified'}</p>
+                <p><strong>Procedures:</strong> ${facts.procedures.join(', ') || 'None identified'}</p>
+                <p><strong>Indications:</strong> ${facts.indications.join(', ') || 'None identified'}</p>
+            `;
+        }
+
+        function displayComplianceIssues(readiness, edits) {
+            const container = document.getElementById('complianceIssues');
+            
+            if (readiness.issues.length === 0) {
+                container.innerHTML = '<p style="color: #27ae60;">✓ No compliance issues identified</p>';
+                return;
+            }
+            
+            let html = '';
+            
+            readiness.issues.forEach(issue => {
+                html += `<p style="color: #e74c3c;">⚠ ${issue}</p>`;
+            });
+            
+            if (readiness.actions.length > 0) {
+                html += '<p><strong>Recommended Actions:</strong></p><ul>';
+                readiness.actions.forEach(action => {
+                    html += `<li>${action}</li>`;
+                });
+                html += '</ul>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function displayExplanation(notes) {
+            const card = document.getElementById('explanationCard');
+            const container = document.getElementById('explanationNotes');
+            
+            card.style.display = 'block';
+            
+            let html = '<ul>';
+            notes.forEach(note => {
+                html += `<li>${note}</li>`;
+            });
+            html += '</ul>';
+            
+            container.innerHTML = html;
+        }
+
+        function loadExample() {
+            // Load the specification example
+            document.getElementById('mode').value = 'explain';
+            document.getElementById('patientAge').value = '46';
+            document.getElementById('patientSex').value = 'F';
+            document.getElementById('encounterDate').value = '2025-08-16';
+            document.getElementById('posCode').value = '11';
+            document.getElementById('payer').value = 'GenericPPO';
+            document.getElementById('providerType').value = 'Internal Medicine';
+            document.getElementById('clinicalNote').value = 'Patient presents with palpitations. Normal physical examination. ECG performed and interpreted showing normal sinus rhythm. Separate visit-level assessment for new complaint of palpitations.';
+            document.getElementById('orders').value = 'ECG 12-lead';
+            document.getElementById('bp').value = '118/72';
+            document.getElementById('hr').value = '92';
+        }
+    </script>
+</body>
+</html>
